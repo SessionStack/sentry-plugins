@@ -4,18 +4,18 @@ import responses
 
 from exam import fixture
 from sentry.testutils import PluginTestCase
-from sentry.utils import json
 
 from sentry_plugins.sessionstack.plugin import SessionStackPlugin
 
-EXPECTED_SESSION_URL = (
+
+EXPECTED_SESSION_ADDRESS = (
     'https://app.sessionstack.com/player/#/sessions/588778a6c5762c1d566653ff'
     '?access_token=example-access-token'
 )
 
-ACCESS_TOKENS_URL = (
-    'https://api.sessionstack.com/v1/websites/0/sessions/'
-    '588778a6c5762c1d566653ff/access_tokens'
+GENERATE_SHAREABLE_URL_ADDRESS = (
+    'https://api.sessionstack.com/sentry/sessions/'
+    '588778a6c5762c1d566653ff/shareable_url'
 )
 
 
@@ -45,19 +45,11 @@ class SessionStackPluginTest(PluginTestCase):
 
     @responses.activate
     def test_event_preprocessing(self):
-        responses.add(
-            responses.GET,
-            ACCESS_TOKENS_URL,
-            body=json.dumps({
-                'data': [{
-                    'name': 'Sentry',
-                    'access_token': 'example-access-token'
-                }]
-            })
-        )
+        responses.add(responses.GET, GENERATE_SHAREABLE_URL_ADDRESS)
 
         self.plugin.enable(self.project)
-        self.plugin.set_option('account_email', 'user@example.com', self.project)
+        self.plugin.set_option('account_email', 'user@example.com',
+                               self.project)
         self.plugin.set_option('api_token', 'example-api-token', self.project)
         self.plugin.set_option('website_id', 0, self.project)
 
@@ -81,4 +73,4 @@ class SessionStackPluginTest(PluginTestCase):
         sessionstack_context = event_contexts.get('sessionstack')
         session_url = sessionstack_context.get('session_url')
 
-        assert session_url == EXPECTED_SESSION_URL
+        assert session_url == EXPECTED_SESSION_ADDRESS

@@ -11,7 +11,10 @@ from sentry.exceptions import PluginError
 from sentry_plugins.base import CorePluginMixin
 
 from .client import (
-    SessionStackClient, UnauthorizedError, InvalidWebsiteIdError, InvalidApiUrlError
+    SessionStackClient,
+    UnauthorizedError,
+    InvalidWebsiteIdError,
+    InvalidApiUrlError
 )
 
 UNAUTHORIZED_ERROR = (
@@ -60,7 +63,6 @@ class SessionStackPlugin(CorePluginMixin, Plugin2):
         self.set_option('account_email', '', project)
         self.set_option('api_token', '', project)
         self.set_option('website_id', '', project)
-        self.set_option('player_url', '', project)
         self.set_option('api_url', '', project)
 
     def is_testable(self, **kwargs):
@@ -71,8 +73,7 @@ class SessionStackPlugin(CorePluginMixin, Plugin2):
             account_email=config.get('account_email'),
             api_token=config.get('api_token'),
             website_id=config.get('website_id'),
-            api_url=config.get('api_url'),
-            player_url=config.get('player_url')
+            api_url=config.get('api_url')
         )
 
         try:
@@ -93,7 +94,6 @@ class SessionStackPlugin(CorePluginMixin, Plugin2):
         api_token = self.get_option('api_token', project)
         website_id = self.get_option('website_id', project)
         api_url = self.get_option('api_url', project)
-        player_url = self.get_option('player_url', project)
 
         configurations = [
             {
@@ -121,39 +121,15 @@ class SessionStackPlugin(CorePluginMixin, Plugin2):
         ]
 
         if settings.SENTRY_ONPREMISE:
-            configurations.extend(
-                [
-                    {
-                        'name':
-                        'api_url',
-                        'label':
-                        'SessionStack API URL',
-                        'default':
-                        api_url,
-                        'type':
-                        'text',
-                        'help':
-                        'URL to SessionStack\'s REST API. The default '
+            configurations.append({
+                'name': 'api_url',
+                'label': 'SessionStack API URL',
+                'default': api_url,
+                'type': 'text',
+                'help': 'URL to SessionStack\'s REST API. The default '
                         'value is "https://api.sessionstack.com/"',
-                        'required':
-                        False
-                    }, {
-                        'name':
-                        'player_url',
-                        'label':
-                        'SessionStack Player URL',
-                        'default':
-                        player_url,
-                        'type':
-                        'text',
-                        'help':
-                        'URL to SessionStack\'s session player. The default '
-                        'value is "http://app.sessionstack.com/player/"',
-                        'required':
-                        False
-                    }
-                ]
-            )
+                'required': False
+            })
 
         return configurations
 
@@ -178,12 +154,12 @@ class SessionStackPlugin(CorePluginMixin, Plugin2):
                 account_email=self.get_option('account_email', project),
                 api_token=self.get_option('api_token', project),
                 website_id=self.get_option('website_id', project),
-                api_url=self.get_option('api_url', project),
-                player_url=self.get_option('player_url', project)
+                api_url=self.get_option('api_url', project)
             )
 
             session_url = sessionstack_client.get_session_url(
-                session_id=session_id, event_timestamp=context.get('timestamp')
+                session_id=session_id,
+                event_timestamp=context.get('timestamp')
             )
 
             context['session_url'] = session_url
